@@ -63,7 +63,7 @@ def execute_prestartup_script():
             spec.loader.exec_module(module)
             return True
         except Exception as e:
-            logging.error(f"Failed to execute startup-script: {script_path} / {e}")
+            print(f"Failed to execute startup-script: {script_path} / {e}")
         return False
 
     if args.disable_all_custom_nodes:
@@ -85,14 +85,14 @@ def execute_prestartup_script():
                 success = execute_script(script_path)
                 node_prestartup_times.append((time.perf_counter() - time_before, module_path, success))
     if len(node_prestartup_times) > 0:
-        logging.info("\nPrestartup times for custom nodes:")
+        print("\nPrestartup times for custom nodes:")
         for n in sorted(node_prestartup_times):
             if n[2]:
                 import_message = ""
             else:
                 import_message = " (PRESTARTUP FAILED)"
-            logging.info("{:6.1f} seconds{}: {}".format(n[0], import_message, n[1]))
-        logging.info("")
+            print("{:6.1f} seconds{}:".format(n[0], import_message), n[1])
+        print()
 
 apply_custom_paths()
 execute_prestartup_script()
@@ -114,10 +114,6 @@ if __name__ == "__main__":
         os.environ['HIP_VISIBLE_DEVICES'] = str(args.cuda_device)
         logging.info("Set cuda device to: {}".format(args.cuda_device))
 
-    if args.oneapi_device_selector is not None:
-        os.environ['ONEAPI_DEVICE_SELECTOR'] = args.oneapi_device_selector
-        logging.info("Set oneapi device selector to: {}".format(args.oneapi_device_selector))
-
     if args.deterministic:
         if 'CUBLAS_WORKSPACE_CONFIG' not in os.environ:
             os.environ['CUBLAS_WORKSPACE_CONFIG'] = ":4096:8"
@@ -134,8 +130,14 @@ if args.windows_standalone_build:
 import comfy.utils
 
 import execution
-import server
-from server import BinaryEventTypes
+if args.distributed == "publisher":
+    import RabbitMQInterface.DistributedExecution
+    execution.PromptQueue.put = RabbitMQInterface.DistributedExecution.ModifiedPut
+    import server_distributed as server
+    from server_distributed import BinaryEventTypes
+else:
+    import server
+    from server import BinaryEventTypes
 import nodes
 import comfy.model_management
 
@@ -150,12 +152,13 @@ def cuda_malloc_warning():
         if cuda_malloc_warning:
             logging.warning("\nWARNING: this card most likely does not support cuda-malloc, if you get \"CUDA error\" please run ComfyUI with: --disable-cuda-malloc\n")
 
-def prompt_worker(q, server):
+def prompt_worker(q, server, statusMessage):
     current_time: float = 0.0
     e = execution.PromptExecutor(server, lru_size=args.cache_lru)
     last_gc_collect = 0
     need_gc = False
     gc_collect_interval = 10.0
+    statusMessage.put(True)
 
     while True:
         timeout = 1000.0
@@ -204,6 +207,7 @@ def prompt_worker(q, server):
                 comfy.model_management.soft_empty_cache()
                 last_gc_collect = current_time
                 need_gc = False
+        statusMessage.put(True)
 
 async def run(server, address='', port=8188, verbose=True, call_on_start=None):
     addresses = []
@@ -255,7 +259,16 @@ if __name__ == "__main__":
     server.add_routes()
     hijack_progress(server)
 
-    threading.Thread(target=prompt_worker, daemon=True, args=(q, server,)).start()
+    import queue
+    statusMessage = queue.Queue()
+    if args.distributed == "worker":
+        import RabbitMQInterface.DistributedQueuePuller as puller
+        threading.Thread(target=puller.runQueuePuller, daemon=True, args=(statusMessage,)).start()
+
+    threading.Thread(target=prompt_worker, daemon=True, args=(q, server, statusMessage,)).start()
+
+
+
 
     if args.quick_test_for_ci:
         exit(0)

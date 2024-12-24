@@ -13,6 +13,13 @@ Pillow
 scipy
 tqdm
 psutil
+aio_pika
+PyJWT
+configargparse
+watchdog
+pebble
+
+pika
 
 #non essential dependencies:
 kornia>=0.7.1
