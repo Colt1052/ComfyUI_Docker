@@ -63,7 +63,7 @@ def execute_prestartup_script():
             spec.loader.exec_module(module)
             return True
         except Exception as e:
-            print(f"Failed to execute startup-script: {script_path} / {e}")
+            logging.error(f"Failed to execute startup-script: {script_path} / {e}")
         return False
 
     if args.disable_all_custom_nodes:
@@ -85,14 +85,14 @@ def execute_prestartup_script():
                 success = execute_script(script_path)
                 node_prestartup_times.append((time.perf_counter() - time_before, module_path, success))
     if len(node_prestartup_times) > 0:
-        print("\nPrestartup times for custom nodes:")
+        logging.info("\nPrestartup times for custom nodes:")
         for n in sorted(node_prestartup_times):
             if n[2]:
                 import_message = ""
             else:
                 import_message = " (PRESTARTUP FAILED)"
-            print("{:6.1f} seconds{}:".format(n[0], import_message), n[1])
-        print()
+            logging.info("{:6.1f} seconds{}: {}".format(n[0], import_message, n[1]))
+        logging.info("")
 
 apply_custom_paths()
 execute_prestartup_script()
@@ -114,6 +114,10 @@ if __name__ == "__main__":
         os.environ['HIP_VISIBLE_DEVICES'] = str(args.cuda_device)
         logging.info("Set cuda device to: {}".format(args.cuda_device))
 
+    if args.oneapi_device_selector is not None:
+        os.environ['ONEAPI_DEVICE_SELECTOR'] = args.oneapi_device_selector
+        logging.info("Set oneapi device selector to: {}".format(args.oneapi_device_selector))
+
     if args.deterministic:
         if 'CUBLAS_WORKSPACE_CONFIG' not in os.environ:
             os.environ['CUBLAS_WORKSPACE_CONFIG'] = ":4096:8"
@@ -128,8 +132,8 @@ if args.windows_standalone_build:
         pass
 
 import comfy.utils
-
 import execution
+
 if args.distributed == "publisher":
     import RabbitMQInterface.DistributedExecution
     execution.PromptQueue.put = RabbitMQInterface.DistributedExecution.ModifiedPut
@@ -266,9 +270,6 @@ if __name__ == "__main__":
         threading.Thread(target=puller.runQueuePuller, daemon=True, args=(statusMessage,)).start()
 
     threading.Thread(target=prompt_worker, daemon=True, args=(q, server, statusMessage,)).start()
-
-
-
 
     if args.quick_test_for_ci:
         exit(0)
