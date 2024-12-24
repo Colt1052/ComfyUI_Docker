@@ -1,12 +1,13 @@
 import logging
 from .DistributedQueuePuller import RabbitMQProcessor
+from comfy.cli_args import args
 
 async def ModifiedPut(self, item):
     try:
         logging.info("Putting prompt in distributed queue")
         if not hasattr(self,"rabbitMQProcessor"):
-            RABBITMQ_HOST = 'amqp://guest:guest@localhost:5672'
-            QUEUE_NAME = 'my_queue'
+            RABBITMQ_HOST = args.rabbitUrl
+            QUEUE_NAME = args.queueName
             APPLICATION_READY_URL = 'http://localhost:8188/api/prompt'
             APPLICATION_PUSH_URL = 'http://localhost:8188/api/prompt'
             self.rabbitMQProcessor = RabbitMQProcessor(

@@ -87,16 +87,14 @@ class RabbitMQProcessor:
     async def run(self):
         await self.consume_messages()
 
-def runQueuePuller(statusMessage):
+def runQueuePuller(rabbitMqHost,queueName,statusMessage):
     # RabbitMQ Configuration
-    RABBITMQ_HOST = 'amqp://guest:guest@localhost:5672'
-    QUEUE_NAME = 'my_queue'
     APPLICATION_READY_URL = 'http://localhost:8188/api/prompt'
     APPLICATION_PUSH_URL = 'http://localhost:8188/api/prompt'
 
     processor = RabbitMQProcessor(
-        rabbitmq_host=RABBITMQ_HOST,
-        queue_name=QUEUE_NAME,
+        rabbitmq_host=rabbitMqHost,
+        queue_name=queueName,
         ready_url=APPLICATION_READY_URL,
         push_url=APPLICATION_PUSH_URL,
         statusMessage=statusMessage

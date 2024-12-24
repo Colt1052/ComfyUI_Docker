@@ -141,7 +141,10 @@ parser.add_argument("--disable-all-custom-nodes", action="store_true", help="Dis
 parser.add_argument("--multi-user", action="store_true", help="Enables per-user storage.")
 
 parser.add_argument("--verbose", default='INFO', const='DEBUG', nargs="?", choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'], help='Set the logging level')
+
 parser.add_argument("--distributed", default='none', nargs="?", choices=['worker', 'publisher', 'none'], help='Set the distributed type')
+parser.add_argument("--rabbitUrl", default='amqp://guest:guest@localhost:5672', help='Set the =Rabbit MQ Host Url')
+parser.add_argument("--queueName", default='local_queue', help='Set the Rabbit MQ Queue Name')
 
 # The default built-in provider hosted under web/
 DEFAULT_VERSION_STRING = "comfyanonymous/ComfyUI@latest"

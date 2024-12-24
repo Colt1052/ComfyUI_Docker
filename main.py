@@ -267,7 +267,9 @@ if __name__ == "__main__":
     statusMessage = queue.Queue()
     if args.distributed == "worker":
         import RabbitMQInterface.DistributedQueuePuller as puller
-        threading.Thread(target=puller.runQueuePuller, daemon=True, args=(statusMessage,)).start()
+        rabbitHost = args.rabbitUrl
+        queueName = args.queueName
+        threading.Thread(target=puller.runQueuePuller, daemon=True, args=(rabbitHost, queueName, statusMessage,)).start()
 
     threading.Thread(target=prompt_worker, daemon=True, args=(q, server, statusMessage,)).start()
 
