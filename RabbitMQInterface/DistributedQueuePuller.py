@@ -2,6 +2,7 @@ import asyncio
 import aio_pika
 import aiohttp
 import json
+from comfy.cli_args import args
 
 class RabbitMQProcessor:
     def __init__(self, rabbitmq_host, queue_name, ready_url, push_url,statusMessage=None):
@@ -87,14 +88,16 @@ class RabbitMQProcessor:
     async def run(self):
         await self.consume_messages()
 
-def runQueuePuller(rabbitMqHost,queueName,statusMessage):
+def runQueuePuller(statusMessage):
     # RabbitMQ Configuration
-    APPLICATION_READY_URL = 'http://localhost:8188/api/prompt'
-    APPLICATION_PUSH_URL = 'http://localhost:8188/api/prompt'
+    RABBITMQ_HOST = args.rabbitUrl
+    QUEUE_NAME = args.queueName
+    APPLICATION_READY_URL = args.ready_url
+    APPLICATION_PUSH_URL = args.push_url
 
     processor = RabbitMQProcessor(
-        rabbitmq_host=rabbitMqHost,
-        queue_name=queueName,
+        rabbitmq_host=RABBITMQ_HOST,
+        queue_name=QUEUE_NAME,
         ready_url=APPLICATION_READY_URL,
         push_url=APPLICATION_PUSH_URL,
         statusMessage=statusMessage

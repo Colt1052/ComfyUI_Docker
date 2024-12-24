@@ -8,8 +8,8 @@ async def ModifiedPut(self, item):
         if not hasattr(self,"rabbitMQProcessor"):
             RABBITMQ_HOST = args.rabbitUrl
             QUEUE_NAME = args.queueName
-            APPLICATION_READY_URL = 'http://localhost:8188/api/prompt'
-            APPLICATION_PUSH_URL = 'http://localhost:8188/api/prompt'
+            APPLICATION_READY_URL = args.ready_url
+            APPLICATION_PUSH_URL = args.push_url
             self.rabbitMQProcessor = RabbitMQProcessor(
                 rabbitmq_host=RABBITMQ_HOST,
                 queue_name=QUEUE_NAME,

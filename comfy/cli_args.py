@@ -145,6 +145,8 @@ parser.add_argument("--verbose", default='INFO', const='DEBUG', nargs="?", choic
 parser.add_argument("--distributed", default='none', nargs="?", choices=['worker', 'publisher', 'none'], help='Set the distributed type')
 parser.add_argument("--rabbitUrl", default='amqp://guest:guest@localhost:5672', help='Set the =Rabbit MQ Host Url')
 parser.add_argument("--queueName", default='local_queue', help='Set the Rabbit MQ Queue Name')
+parser.add_argument("--ready_url", default='http://localhost:8188/api/prompt', help='Url to check if the application is ready')
+parser.add_argument("--push_url", default='http://localhost:8188/api/prompt', help='Url to push prompts to')
 
 # The default built-in provider hosted under web/
 DEFAULT_VERSION_STRING = "comfyanonymous/ComfyUI@latest"
