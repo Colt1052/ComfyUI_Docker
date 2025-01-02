@@ -9,7 +9,7 @@ RUN apt-get -y install curl
 ENV ROOT=/stable-diffusion
 
 COPY requirements.txt ${ROOT}/requirements.txt
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r ${ROOT}/requirements.txt
 
 RUN git clone https://github.com/ltdrdata/ComfyUI-Manager ${ROOT}/custom_nodes/ComfyUI-Manager && \
   pip install -r ${ROOT}/custom_nodes/ComfyUI-Manager/requirements.txt
