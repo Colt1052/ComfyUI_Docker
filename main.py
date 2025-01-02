@@ -137,11 +137,9 @@ import execution
 if args.distributed == "publisher":
     import RabbitMQInterface.DistributedExecution
     execution.PromptQueue.put = RabbitMQInterface.DistributedExecution.ModifiedPut
-    import server_distributed as server
-    from server_distributed import BinaryEventTypes
-else:
-    import server
-    from server import BinaryEventTypes
+
+import server
+from server import BinaryEventTypes
 import nodes
 import comfy.model_management
 
